@@ -85,6 +85,87 @@ async def metrics():
     data, content_type = get_metrics()
     return data
 
+from pydantic import BaseModel
+from typing import Optional
+
+# Pydantic models for request validation
+class QueryRequest(BaseModel):
+    query: str
+    top_k: Optional[int] = 5
+
+class ExplainSelectedRequest(BaseModel):
+    query: str
+    selected_text: str
+    top_k: Optional[int] = 5
+
+# Simple endpoints for frontend integration
+@app.post("/query")
+async def query_endpoint(request: QueryRequest):
+    """
+    Handle general queries about the book content
+    Expected request format: {"query": "user question", "top_k": 5}
+    Expected response format: {"answer": "response text"}
+    """
+    try:
+        from app.services.content_service import get_content_service
+        from app.services.agent_service import get_agent_service
+
+        content_service = get_content_service()
+        agent_service = get_agent_service()
+
+        # Perform the search
+        search_results = await content_service.search_content(
+            query=request.query,
+            top_k=request.top_k,
+            similarity_threshold=0.6
+        )
+
+        # Format context from search results
+        context_text = "\n".join([
+            f"Content: {result['text'][:500]}{'...' if len(result['text']) > 500 else ''}\nSource: {result['source_file']}\n"
+            for result in search_results
+        ])
+
+        # Generate response using agent service
+        full_query = f"Based on the following context, answer the question: {request.query}\n\nContext:\n{context_text}"
+
+        response = await agent_service.create_completion(
+            prompt=full_query,
+            max_tokens=500
+        )
+
+        return {"answer": response}
+    except Exception as e:
+        print(f"Error in query endpoint: {str(e)}")
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=f"Query processing failed: {str(e)}")
+
+@app.post("/explain-selected")
+async def explain_selected_endpoint(request: ExplainSelectedRequest):
+    """
+    Handle explanations for selected text
+    Expected request format: {"query": "Explain this: selected text", "selected_text": "selected text", "top_k": 5}
+    Expected response format: {"answer": "explanation"}
+    """
+    try:
+        from app.services.agent_service import get_agent_service
+
+        agent_service = get_agent_service()
+
+        # Generate explanation for the selected text
+        explanation_query = f"Please explain the following text in detail: {request.selected_text}"
+
+        response = await agent_service.create_completion(
+            prompt=explanation_query,
+            max_tokens=500
+        )
+
+        return {"answer": response}
+    except Exception as e:
+        print(f"Error in explain-selected endpoint: {str(e)}")
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=f"Explanation processing failed: {str(e)}")
+
 # Root health check
 @app.get("/health")
 async def root_health():
