@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.specify/scripts/powershell/create-new-feature.ps1 -Json \"based on constitution\" --number 1 --short-name \"fastapi-book-search\")",
+      "Bash(.specify/scripts/powershell/setup-plan.ps1 -Json)",
+      "Bash(.specify/scripts/powershell/create-adr.ps1 \"Test ADR\" -Json)",
+      "Bash(.specify/scripts/powershell/check-prerequisites.ps1 -Json)",
+      "Bash(.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)",
+      "Bash(if [ -d \"D:\\GIAIC\\Hackathon\\fast_api_for_book\\specs\\001-based-on-constitution\\checklists\" ])",
+      "Bash(then ls \"D:\\GIAIC\\Hackathon\\fast_api_for_book\\specs\\001-based-on-constitution\\checklists\")",
+      "Bash(else echo \"No checklists directory found\")",
+      "Bash(fi)",
+      "Bash(python -c \"from app.main import app; print(''Application imported successfully'')\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
