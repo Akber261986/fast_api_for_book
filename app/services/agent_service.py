@@ -23,7 +23,7 @@ class AgentService:
 
         self.api_key = api_key
         genai.configure(api_key=api_key)
-        self.model = "gemini-pro"  # Default model for agent operations
+        self.model = "gemini-2.5-flash"  # Updated to current model for agent operations
         self.sessions: Dict[str, ChatSession] = {}  # In-memory session storage
         # Don't initialize content_service here to avoid circular dependency
         self.content_service = content_service
