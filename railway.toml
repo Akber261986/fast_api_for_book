@@ -1,0 +1,19 @@
+# Railway Configuration
+[build]
+  builder = "dockerfile"
+  dockerfilePath = "Dockerfile"
+
+[deploy]
+  restartPolicyType = "never"
+  healthcheckPath = "/health"
+  healthcheckTimeout = 300
+  maxRetries = 3
+
+[variables]
+  required = [
+    "GEMINI_API_KEY",
+    "QDRANT_HOST",
+    "QDRANT_API_KEY",
+    "QDRANT_PORT",
+    "ENVIRONMENT"
+  ]
