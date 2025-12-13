@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # Gemini API
-    GEMINI_API_KEY: str
+    GEMINI_API_KEY: Optional[str] = None
     GEMINI_MODEL: str = "gemini-2.5-flash"
 
     # Qdrant Configuration
@@ -26,6 +26,16 @@ class Settings(BaseSettings):
 
     # API
     API_V1_STR: str = "/api/v1"
+
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT.lower() == "production"
+
+    def validate_environment(self):
+        """Validate that required settings are present based on environment."""
+        if self.is_production and not self.GEMINI_API_KEY:
+            raise ValueError("GEMINI_API_KEY is required in production environment")
+        return True
 
     class Config:
         env_file = ".env"
