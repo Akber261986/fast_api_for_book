@@ -7,32 +7,36 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Initialize Qdrant client
-qdrant_client = QdrantClient(
-    host=settings.QDRANT_HOST,
-    port=settings.QDRANT_PORT,
-    api_key=settings.QDRANT_API_KEY,
-    grpc_port=settings.QDRANT_GRPC_PORT,
-    prefer_grpc=True
-)
+# Qdrant client will be initialized lazily when first accessed
+_qdrant_client = None
+
+def get_qdrant_client() -> QdrantClient:
+    """Return the Qdrant client instance, creating it if it doesn't exist."""
+    global _qdrant_client
+    if _qdrant_client is None:
+        _qdrant_client = QdrantClient(
+            host=settings.QDRANT_HOST,
+            port=settings.QDRANT_PORT,
+            api_key=settings.QDRANT_API_KEY,
+            grpc_port=settings.QDRANT_GRPC_PORT,
+            prefer_grpc=True
+        )
+    return _qdrant_client
 
 # Collection name for document embeddings
 COLLECTION_NAME = "document_embeddings"
 
-def get_qdrant_client() -> QdrantClient:
-    """Return the Qdrant client instance."""
-    return qdrant_client
-
 def ensure_collection_exists():
     """Ensure the document embeddings collection exists with proper configuration."""
     try:
+        client = get_qdrant_client()
         # Check if collection already exists
-        collections = qdrant_client.get_collections()
+        collections = client.get_collections()
         collection_names = [collection.name for collection in collections.collections]
 
         if COLLECTION_NAME not in collection_names:
             # Create collection with cosine distance for semantic similarity
-            qdrant_client.create_collection(
+            client.create_collection(
                 collection_name=COLLECTION_NAME,
                 vectors_config=models.VectorParams(
                     size=768,  # Gemini embedding dimension
@@ -49,8 +53,9 @@ def ensure_collection_exists():
 def initialize_database():
     """Initialize the database connection and ensure required collections exist."""
     try:
+        client = get_qdrant_client()
         # Test connection
-        qdrant_client.get_collections()
+        client.get_collections()
         logger.info("Successfully connected to Qdrant")
 
         # Ensure collection exists

@@ -6,20 +6,31 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Configure the Gemini API
-genai.configure(api_key=settings.GEMINI_API_KEY)
+# Configure the Gemini API (will be configured when first used)
+_api_configured = False
+
+def _ensure_api_configured():
+    """Ensure the Gemini API is configured."""
+    global _api_configured
+    if not _api_configured:
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        _api_configured = True
 
 class GeminiClient:
     """Wrapper for Google's Gemini API client."""
 
     def __init__(self):
+        _ensure_api_configured()
         self.model_name = settings.GEMINI_MODEL
-        self.model = genai.GenerativeModel(self.model_name)
-        self.embedding_model = genai.embed_content(
-            model="models/embedding-001",
-            content=["test"],  # Test call to verify model access
-            task_type="retrieval_document"
-        )
+        self._model = None
+        self._embedding_model = None
+
+    @property
+    def model(self):
+        """Lazy load the generative model when first accessed."""
+        if self._model is None:
+            self._model = genai.GenerativeModel(self.model_name)
+        return self._model
 
     def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
         """
@@ -32,6 +43,7 @@ class GeminiClient:
             List of embedding vectors (each vector is a list of floats)
         """
         try:
+            _ensure_api_configured()
             response = genai.embed_content(
                 model="models/embedding-001",
                 content=texts,
@@ -86,6 +98,7 @@ class GeminiClient:
             Embedding vector as a list of floats
         """
         try:
+            _ensure_api_configured()
             response = genai.embed_content(
                 model="models/embedding-001",
                 content=[text],
@@ -96,5 +109,5 @@ class GeminiClient:
             logger.error(f"Error generating embedding for text: {e}")
             raise
 
-# Global instance
+# Global instance (will be created without immediate API calls)
 gemini_client = GeminiClient()

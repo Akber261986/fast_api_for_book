@@ -6,8 +6,8 @@ from uuid import uuid4
 from app.models.document import DocumentIngestionRequest, DocumentIngestionResponse, DocumentStatus, DocumentChunk
 from app.core.database import get_qdrant_client, COLLECTION_NAME
 from app.core.gemini_client import gemini_client
-from app.utils.chunking import chunk_text
-from app.utils.markdown_parser import parse_markdown
+from app.utils.chunking import chunk_text_by_tokens as chunk_text
+from app.utils.markdown_parser import extract_text_from_markdown as parse_markdown
 from app.services.embedding_service import embedding_service
 
 logger = logging.getLogger(__name__)
