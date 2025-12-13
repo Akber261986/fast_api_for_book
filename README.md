@@ -142,6 +142,6 @@ The system includes comprehensive error handling:
 ## Limitations
 
 - Requires a valid Google Gemini API key
-- Requires a running Qdrant instance
+- Requires a running Qdrant instance.
 - File size is limited to 10MB per upload
 - Rate limiting is not implemented (can be added via middleware)
