@@ -4,13 +4,15 @@ import sys
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Dict, Any
+import asyncio
 
 import structlog
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api.endpoints import query, ingest
+from app.api.health import router as health_router
 
 
 class EventFilter(logging.Filter):
@@ -63,7 +65,18 @@ async def lifespan(app: FastAPI):
     # Startup
     setup_structured_logging()
     logger = structlog.get_logger()
-    logger.info("Starting RAG System for Markdown Files API", version="1.0.0")
+
+    try:
+        logger.info("Starting RAG System for Markdown Files API", version="1.0.0")
+
+        # Optionally initialize connections here, but make it non-critical for startup
+        # So the app can start even if external services are temporarily unavailable
+
+        # For now, just log that we're starting
+        logger.info("App initialized successfully", status="ready")
+    except Exception as e:
+        logger.error("Error during application startup", error=str(e))
+        # Still allow the app to start even if there are issues with external services
 
     yield
 
@@ -92,12 +105,18 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "environment": settings.ENVIRONMENT,
+        "version": "1.0.0"
+    }
 
 
 # Include API routes
 app.include_router(query.router, prefix="/query", tags=["query"])
 app.include_router(ingest.router, prefix="/ingest", tags=["ingest"])
+app.include_router(health_router, prefix="/health", tags=["health"])
 
 if __name__ == "__main__":
     import uvicorn
