@@ -17,7 +17,14 @@ class IngestionService:
     """Service for ingesting documents into the RAG system."""
 
     def __init__(self):
-        self.client = get_qdrant_client()
+        self._client = None
+
+    @property
+    def client(self):
+        """Lazy load the Qdrant client when first accessed."""
+        if self._client is None:
+            self._client = get_qdrant_client()
+        return self._client
 
     def ingest_document(self, request: DocumentIngestionRequest) -> DocumentIngestionResponse:
         """

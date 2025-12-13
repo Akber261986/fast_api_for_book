@@ -14,7 +14,14 @@ class RetrievalService:
     """Service for handling document retrieval from Qdrant vector database."""
 
     def __init__(self):
-        self.client = get_qdrant_client()
+        self._client = None
+
+    @property
+    def client(self):
+        """Lazy load the Qdrant client when first accessed."""
+        if self._client is None:
+            self._client = get_qdrant_client()
+        return self._client
 
     def search_documents(self, query_text: str, top_k: int = 5, similarity_threshold: float = 0.5) -> List[Dict[str, Any]]:
         """
