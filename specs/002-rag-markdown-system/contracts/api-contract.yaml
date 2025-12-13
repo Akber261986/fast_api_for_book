@@ -1,0 +1,129 @@
+openapi: 3.0.0
+info:
+  title: RAG System for Markdown Files API
+  description: API for querying Markdown files using Retrieval-Augmented Generation
+  version: 1.0.0
+paths:
+  /ingest:
+    post:
+      summary: Ingest a Markdown file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Markdown file to be ingested
+      responses:
+        '200':
+          description: File successfully ingested
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  document_id:
+                    type: string
+                    description: ID of the ingested document
+                  chunks_count:
+                    type: integer
+                    description: Number of chunks created from the document
+                  status:
+                    type: string
+                    enum: [success]
+        '400':
+          description: Invalid file format or processing error
+        '500':
+          description: Internal server error
+  /query:
+    post:
+      summary: Query the RAG system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: Natural language query
+                top_k:
+                  type: integer
+                  description: Number of results to retrieve (default: 5)
+                  minimum: 1
+                  maximum: 20
+                  default: 5
+                similarity_threshold:
+                  type: number
+                  format: float
+                  description: Minimum similarity threshold (default: 0.5)
+                  minimum: 0.0
+                  maximum: 1.0
+                  default: 0.5
+      responses:
+        '200':
+          description: Query response with context
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response_id:
+                    type: string
+                    description: ID of the response
+                  query:
+                    type: string
+                    description: Original query
+                  answer:
+                    type: string
+                    description: Generated answer
+                  source_chunks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        chunk_id:
+                          type: string
+                          description: ID of the source chunk
+                        document_id:
+                          type: string
+                          description: ID of the source document
+                        content:
+                          type: string
+                          description: Content of the source chunk
+                        score:
+                          type: number
+                          format: float
+                          description: Similarity score
+                  confidence:
+                    type: number
+                    format: float
+                    description: Confidence score for the response
+        '400':
+          description: Invalid query parameters
+        '500':
+          description: Internal server error
+  /health:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy]
+                  timestamp:
+                    type: string
+                    format: date-time
