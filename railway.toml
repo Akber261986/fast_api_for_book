@@ -1,19 +1,17 @@
-# Railway Configuration
+# Railway configuration for RAG System
+
 [build]
-  builder = "dockerfile"
-  dockerfilePath = "Dockerfile"
+builder = "dockerfile"
 
 [deploy]
-  restartPolicyType = "never"
-  healthcheckPath = "/health"
-  healthcheckTimeout = 300
-  maxRetries = 3
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+numReplicas = 1
+region = "us-west-1"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
 
 [variables]
-  required = [
-    "GEMINI_API_KEY",
-    "QDRANT_HOST",
-    "QDRANT_API_KEY",
-    "QDRANT_PORT",
-    "ENVIRONMENT"
-  ]
+GEMINI_API_KEY = { required = true }
+QDRANT_HOST = { required = true }
+QDRANT_PORT = { default = "6333" }
+ENVIRONMENT = { default = "production" }

@@ -13,7 +13,8 @@
       "Bash(python -c \"from app.main import app; print(''Application imported successfully'')\")",
       "Bash(python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload)",
       "Bash(curl -X POST http://localhost:8000/query -H \"Content-Type: application/json\" -d \"{\"\"query\"\":\"\"test question\"\", \"\"top_k\"\": 5}\")",
-      "Bash(curl -X POST http://localhost:8000/explain-selected -H \"Content-Type: application/json\" -d \"{\"\"query\"\":\"\"Explain this text\"\", \"\"selected_text\"\":\"\"sample text\"\", \"\"top_k\"\": 5}\")"
+      "Bash(curl -X POST http://localhost:8000/explain-selected -H \"Content-Type: application/json\" -d \"{\"\"query\"\":\"\"Explain this text\"\", \"\"selected_text\"\":\"\"sample text\"\", \"\"top_k\"\": 5}\")",
+      "Bash(git rev-parse --git-dir)"
     ],
     "deny": [],
     "ask": []
