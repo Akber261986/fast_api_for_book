@@ -14,7 +14,9 @@
       "Bash(python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload)",
       "Bash(curl -X POST http://localhost:8000/query -H \"Content-Type: application/json\" -d \"{\"\"query\"\":\"\"test question\"\", \"\"top_k\"\": 5}\")",
       "Bash(curl -X POST http://localhost:8000/explain-selected -H \"Content-Type: application/json\" -d \"{\"\"query\"\":\"\"Explain this text\"\", \"\"selected_text\"\":\"\"sample text\"\", \"\"top_k\"\": 5}\")",
-      "Bash(git rev-parse --git-dir)"
+      "Bash(git rev-parse --git-dir)",
+      "Bash(python -c \"from app.main import app; print(''Application imports successfully'')\")",
+      "Bash(python -c \"\nimport sys\nsys.path.insert(0, ''.'')\nfrom app.core.database import get_qdrant_client\ntry:\n    client = get_qdrant_client()\n    print(''Qdrant client created successfully'')\n    print(''Client type:'', type(client))\n    print(''Client URL/Host:'', getattr(client, ''_url'', getattr(client, ''_host'', ''Unknown'')))\nexcept Exception as e:\n    print(''Error creating Qdrant client:'', str(e))\n    import traceback\n    traceback.print_exc()\n\")"
     ],
     "deny": [],
     "ask": []
