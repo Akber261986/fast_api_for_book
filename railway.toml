@@ -8,7 +8,7 @@ startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
 numReplicas = 1
 region = "us-west-1"
 healthcheckPath = "/health"
-healthcheckTimeout = 300
+healthcheckTimeout = 30
 
 [variables]
 GEMINI_API_KEY = { required = true }

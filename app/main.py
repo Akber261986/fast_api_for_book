@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api.endpoints import query, ingest
+from app.api.diagnostics import router as diagnostics_router
 
 
 class EventFilter(logging.Filter):
@@ -110,8 +111,10 @@ app.add_middleware(
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    # Check required environment variables
+    """Health check endpoint - returns quickly without external service checks"""
+    # Perform only basic checks without connecting to external services
+    # This ensures fast response times for Railway's health check
+
     missing_vars = []
     if settings.is_production:
         if not settings.GEMINI_API_KEY:
@@ -119,6 +122,7 @@ async def health_check():
         if not settings.QDRANT_HOST:
             missing_vars.append("QDRANT_HOST")
 
+    # Just return basic health status without network calls
     status = "degraded" if missing_vars and settings.is_production else "healthy"
 
     return {
@@ -126,13 +130,14 @@ async def health_check():
         "timestamp": datetime.now().isoformat(),
         "environment": settings.ENVIRONMENT,
         "version": "1.0.0",
-        "missing_required_vars": missing_vars if missing_vars and settings.is_production else None
+        "app_ready": True  # Indicate that the app is at least running
     }
 
 
 # Include API routes
 app.include_router(query.router, prefix="/query", tags=["query"])
 app.include_router(ingest.router, prefix="/ingest", tags=["ingest"])
+app.include_router(diagnostics_router, prefix="/diag", tags=["diagnostics"])
 
 if __name__ == "__main__":
     import uvicorn
