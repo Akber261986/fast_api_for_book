@@ -30,10 +30,23 @@ async def deep_health_check():
     # Check if Qdrant is accessible (with timeout)
     try:
         if settings.QDRANT_HOST:
-            qdrant_url = f"http://{settings.QDRANT_HOST}:{settings.QDRANT_PORT}/collections"
+            # Determine protocol based on whether host is a full URL or just hostname
+            if settings.QDRANT_HOST.startswith(('http://', 'https://')):
+                # For cloud instances with full URL
+                qdrant_url = f"{settings.QDRANT_HOST}/collections"
+            else:
+                # For local instances, determine protocol based on HTTPS setting
+                protocol = "https" if settings.QDRANT_HTTPS else "http"
+                qdrant_url = f"{protocol}://{settings.QDRANT_HOST}:{settings.QDRANT_PORT}/collections"
+
             timeout = httpx.Timeout(10.0)  # 10 second timeout for Qdrant
             async with httpx.AsyncClient(timeout=timeout) as client:
-                response = await client.get(qdrant_url)
+                # Add API key to headers if available
+                headers = {}
+                if settings.QDRANT_API_KEY:
+                    headers["api-key"] = settings.QDRANT_API_KEY
+
+                response = await client.get(qdrant_url, headers=headers)
                 if response.status_code in [200, 404]:  # 200 = OK, 404 = service up but no collections
                     results["checks"]["qdrant_connection"] = {
                         "status": "connected",
@@ -59,10 +72,10 @@ async def deep_health_check():
         }
 
     # Overall assessment
-    connection_errors = [k for k, v in results["checks"].items() 
+    connection_errors = [k for k, v in results["checks"].items()
                          if v.get("status") == "connection_error" or v.get("status") == "configuration_missing"]
-    
+
     if connection_errors:
         results["basic_status"] = "degraded"
-    
+
     return results

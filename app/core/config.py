@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     QDRANT_PORT: int = 6333
     QDRANT_API_KEY: Optional[str] = None
     QDRANT_GRPC_PORT: int = 6334
+    QDRANT_HTTPS: bool = False
 
     # Application
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB in bytes

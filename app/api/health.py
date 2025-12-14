@@ -29,10 +29,23 @@ async def detailed_health_check():
 
     # Check if Qdrant is accessible (basic connectivity check)
     try:
-        qdrant_url = f"http://{settings.QDRANT_HOST}:{settings.QDRANT_PORT}/collections"
+        # Determine protocol based on whether host is a full URL or just hostname
+        if settings.QDRANT_HOST.startswith(('http://', 'https://')):
+            # For cloud instances with full URL
+            qdrant_url = f"{settings.QDRANT_HOST}/collections"
+        else:
+            # For local instances, determine protocol based on HTTPS setting
+            protocol = "https" if settings.QDRANT_HTTPS else "http"
+            qdrant_url = f"{protocol}://{settings.QDRANT_HOST}:{settings.QDRANT_PORT}/collections"
+
         timeout = httpx.Timeout(5.0)  # 5 second timeout
         async with httpx.AsyncClient(timeout=timeout) as client:
-            response = await client.get(qdrant_url)
+            # Add API key to headers if available
+            headers = {}
+            if settings.QDRANT_API_KEY:
+                headers["api-key"] = settings.QDRANT_API_KEY
+
+            response = await client.get(qdrant_url, headers=headers)
             if response.status_code in [200, 404]:  # 404 means service is reachable
                 checks["checks"]["qdrant_connection"] = {"status": "ok", "message": f"Connected to {settings.QDRANT_HOST}"}
             else:

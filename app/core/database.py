@@ -14,13 +14,24 @@ def get_qdrant_client() -> QdrantClient:
     """Return the Qdrant client instance, creating it if it doesn't exist."""
     global _qdrant_client
     if _qdrant_client is None:
-        _qdrant_client = QdrantClient(
-            host=settings.QDRANT_HOST,
-            port=settings.QDRANT_PORT,
-            api_key=settings.QDRANT_API_KEY,
-            grpc_port=settings.QDRANT_GRPC_PORT,
-            prefer_grpc=True
-        )
+        # Check if QDRANT_HOST is a full URL (for cloud instances)
+        if settings.QDRANT_HOST.startswith(('http://', 'https://')):
+            # For cloud instances, use URL with api_key
+            _qdrant_client = QdrantClient(
+                url=settings.QDRANT_HOST,
+                api_key=settings.QDRANT_API_KEY,
+                grpc_port=settings.QDRANT_GRPC_PORT,
+                prefer_grpc=True
+            )
+        else:
+            # For local instances, use host/port
+            _qdrant_client = QdrantClient(
+                host=settings.QDRANT_HOST,
+                port=settings.QDRANT_PORT,
+                api_key=settings.QDRANT_API_KEY,
+                grpc_port=settings.QDRANT_GRPC_PORT,
+                prefer_grpc=True
+            )
     return _qdrant_client
 
 # Collection name for document embeddings
